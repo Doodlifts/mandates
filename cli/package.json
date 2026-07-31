@@ -1,0 +1,22 @@
+{
+  "name": "mandate-cli",
+  "version": "0.1.0",
+  "description": "CLI for creating, monitoring, and executing Uniswap v4 mandates",
+  "type": "module",
+  "bin": {
+    "mandate": "./bin/mandate.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
