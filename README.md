@@ -20,7 +20,12 @@ outside the mandate, because `beforeSwap` rejects everything else.
 | [`MandateBook`](src/MandateBook.sol) | Custody vault + ERC-6909 capability tokens + policy state + execution router | Resources & capabilities on a Vault |
 | [`MandateHook`](src/MandateHook.sol) | Venue-side enforcement: re-validates and debits every mandate swap inside `beforeSwap` | Entitlement checks at the object |
 | [`GuardHook`](src/GuardHook.sol) | Declarative pre/post conditions per pool: oracle deviation band + circuit breaker, fail-closed | `pre { } post { }` transaction blocks |
+| [`MandateGuardHook`](src/MandateGuardHook.sol) | **The canonical production hook**: mandates + guards composed on one address (v4 allows one hook per pool) | Capabilities *and* pre/post blocks together |
 | [`ChronoHook`](src/ChronoHook.sol) | Swap traffic as a clock: bounty-funded job ring swept in `afterSwap`, permissionless `poke()` fallback | Scheduled Transactions |
+| [`ChainlinkSqrtPriceOracle`](src/oracle/ChainlinkSqrtPriceOracle.sol) | AggregatorV3 feeds → `sqrtPriceX96` reference prices for guards (decimals/invert/staleness handled) | — |
+
+Shared guard logic lives in [`base/Guarded.sol`](src/base/Guarded.sol);
+composition is by inheritance because a pool gets exactly one hook.
 
 ### The mandate envelope
 
@@ -72,14 +77,26 @@ Owner: `deposit`, `create`, `revoke`, `status`. Executor: `exec`, `run`
 (a deliberately dumb DCA loop — the *contract* enforces the envelope, so a
 buggy or malicious loop can't exceed it).
 
+## Deploying
+
+[`script/Deploy.s.sol`](script/Deploy.s.sol) deploys the stack with real
+CREATE2 hook mining (vendored [`HookMiner`](script/utils/HookMiner.sol)):
+
+```bash
+POOL_MANAGER=0x... forge script script/Deploy.s.sol \
+  --rpc-url $RPC --private-key $PK --broadcast
+```
+
+Unset `POOL_MANAGER` deploys a fresh PoolManager (dev chains only).
+Rehearsed end-to-end against anvil: mined addresses verify their flag bits
+(`…40C0` → beforeSwap|afterSwap, `…0040` → afterSwap) and `setHook` wiring
+completes. Gas numbers in [GAS.md](GAS.md).
+
 ## Status / not yet done
 
-Prototype. Before real funds: audit; hook address mining for CREATE2
-deployment (tests etch at flag addresses); production oracle adapter for
-GuardHook (Chainlink/TWAP); gas profiling; composing MandateHook + GuardHook
-on one address (v4 allows one hook per pool — compose by having MandateHook
-call guard checks, or use a multiplexer); ChronoHook `tx.origin` bounty
-routing tradeoff; partial-fill accounting review.
+Prototype. Before real funds: audit; ChronoHook `tx.origin` bounty routing
+tradeoff; partial-fill accounting review; per-pool TWAP fallback oracle;
+production bytecode profile (via-ir); protocol fee switch (see BUSINESS.md).
 
 See [PRODUCT.md](PRODUCT.md) for how people use this (launchpad, CLI,
 executor marketplace) and [BUSINESS.md](BUSINESS.md) for the
