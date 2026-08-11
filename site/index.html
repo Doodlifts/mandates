@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandates — hire any AI to trade, without trusting it</title>
+<meta name="description" content="A mandate is a revocable on-chain allowance with hard rules — budget, direction, expiry — enforced by the Uniswap v4 pool itself. Your agent gets a job, not your keys.">
+<meta property="og:title" content="Mandates — hire any AI to trade, without trusting it">
+<meta property="og:description" content="Scoped, revocable, on-chain trading permissions enforced by the pool itself. Give your agent an allowance, not your keys.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mandates — hire any AI to trade, without trusting it">
+<meta name="twitter:description" content="Scoped, revocable, on-chain trading permissions enforced by the Uniswap v4 pool itself. Give your agent an allowance, not your keys.">
+<style>
+  :root {
+    --bg: #0a0b10;
+    --panel: #12141d;
+    --panel2: #171a26;
+    --ink: #e8eaf2;
+    --dim: #9aa0b4;
+    --faint: #6b7188;
+    --accent: #7c8cff;
+    --accent2: #ff7ac8;
+    --good: #5fd4a2;
+    --bad: #ff8080;
+    --border: #232636;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { padding: 28px 0; display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-family: var(--mono); font-weight: 700; letter-spacing: .08em; font-size: 15px; }
+  .logo span { color: var(--accent2); }
+  nav a { color: var(--dim); font-size: 14px; margin-left: 22px; }
+
+  .hero { padding: 72px 0 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .22em; color: var(--accent2);
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.08; letter-spacing: -0.02em; font-weight: 800; }
+  h1 .grad {
+    background: linear-gradient(92deg, var(--accent) 10%, var(--accent2) 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { margin: 26px 0 0; max-width: 640px; color: var(--dim); font-size: 20px; }
+  .sub strong { color: var(--ink); font-weight: 600; }
+
+  .envelope {
+    margin: 44px 0 0; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 26px 28px; font-family: var(--mono); font-size: 14.5px;
+    line-height: 2; color: var(--dim); position: relative;
+  }
+  .envelope .scroll { overflow-x: auto; }
+  .envelope .k { color: var(--faint); }
+  .envelope .v { color: var(--ink); }
+  .envelope .hl { color: var(--good); }
+  .envelope::before {
+    content: "THE ENVELOPE"; position: absolute; top: -9px; left: 22px;
+    background: var(--bg); padding: 0 8px; font-size: 10.5px; letter-spacing: .2em; color: var(--faint);
+  }
+  .envelope .tag { color: var(--accent2); }
+
+  section { padding: 72px 0 8px; }
+  h2 { font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 14px; }
+  .lede { color: var(--dim); max-width: 640px; margin-bottom: 36px; font-size: 18px; }
+  .lede strong { color: var(--ink); }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px;
+  }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card p { color: var(--dim); font-size: 15.5px; }
+  .card .no { color: var(--bad); font-family: var(--mono); font-size: 12px; letter-spacing: .16em; display: block; margin-bottom: 10px; }
+  .card .step { color: var(--accent); font-family: var(--mono); font-size: 12px; letter-spacing: .16em; display: block; margin-bottom: 10px; }
+
+  .cant { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 30px; }
+  .cant ul { list-style: none; columns: 2; gap: 40px; }
+  @media (max-width: 760px) { .cant ul { columns: 1; } }
+  .cant li { padding: 7px 0; color: var(--dim); font-size: 16px; break-inside: avoid; }
+  .cant li::before { content: "✕  "; color: var(--bad); font-family: var(--mono); }
+  .cant .proof { margin-top: 18px; color: var(--faint); font-size: 14px; }
+  .cant .proof code { font-family: var(--mono); color: var(--dim); }
+
+  pre {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; overflow-x: auto; font-family: var(--mono); font-size: 13.5px;
+    line-height: 1.7; color: var(--dim);
+  }
+  pre .c { color: var(--faint); }
+  pre .g { color: var(--good); }
+  pre .a { color: var(--accent); }
+
+  .strip {
+    margin-top: 84px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--panel); padding: 26px 0;
+  }
+  .strip .wrap { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .strip b { color: var(--accent2); font-family: var(--mono); font-size: 12px; letter-spacing: .18em; }
+  .strip p { color: var(--dim); font-size: 15px; max-width: 720px; }
+
+  footer { padding: 44px 0 64px; color: var(--faint); font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="logo">MANDATES<span>_</span></div>
+  <nav>
+    <a href="#problem">Problem</a>
+    <a href="#how">How it works</a>
+    <a href="#builders">Builders</a>
+  </nav>
+</header>
+
+<div class="hero wrap">
+  <div class="eyebrow">Scoped on-chain trading permissions · Uniswap v4</div>
+  <h1>Hire any AI to trade your money.<br><span class="grad">Without trusting it.</span></h1>
+  <p class="sub">A <strong>mandate</strong> is a revocable on-chain allowance with hard rules —
+  budget, direction, expiry — enforced by the <strong>pool itself</strong>, not by the agent's
+  software. Your agent gets a job, not your keys.</p>
+
+  <div class="envelope">
+    <div class="scroll">
+      <span class="k">pool</span>       <span class="v">ETH / USDC</span><br>
+      <span class="k">budget</span>     <span class="v">100 USDC <span class="k">per</span> day</span><br>
+      <span class="k">direction</span>  <span class="v">sell USDC only</span><br>
+      <span class="k">expires</span>    <span class="v">Sep 30, 2026</span><br>
+      <span class="k">revocable</span>  <span class="hl">anytime, one call, instant</span><br>
+      <span class="tag">// enforced by the pool's hook — not promised by the bot</span>
+    </div>
+  </div>
+</div>
+
+<section id="problem" class="wrap">
+  <h2>Every AI agent wants your wallet.<br>There are only bad ways to hand it over.</h2>
+  <p class="lede">Agents are getting good enough to manage money. The missing piece isn't
+  intelligence — it's a <strong>safe way to delegate</strong>.</p>
+  <div class="grid3">
+    <div class="card">
+      <span class="no">OPTION 1 — GIVE IT KEYS</span>
+      <h3>Full custody</h3>
+      <p>One bug, one prompt injection, one malicious skill update — and everything is gone.
+      You're trusting every line of software between the model and the chain.</p>
+    </div>
+    <div class="card">
+      <span class="no">OPTION 2 — TOKEN APPROVAL</span>
+      <h3>All-or-nothing</h3>
+      <p>ERC-20 <code>approve</code> has no budget, no schedule, no direction, no expiry.
+      An approved spender can drain the allowance in one block, in one direction: away.</p>
+    </div>
+    <div class="card">
+      <span class="no">OPTION 3 — WALLET POLICIES</span>
+      <h3>Rules in the actor</h3>
+      <p>Session keys and policy engines put enforcement in wallet software — the layer the
+      agent operates. Better, but the rules live next to the thing they're restraining.</p>
+    </div>
+  </div>
+  <p class="lede" style="margin-top:36px"><strong>Mandates move the rules to the venue.</strong>
+  The Uniswap v4 pool re-validates every trade inside its own execution path. A compromised
+  agent, a rogue operator, a hallucinating model — none of it matters, because the pool
+  rejects anything outside the envelope.</p>
+  <div class="cant">
+    <ul>
+      <li>exceed the per-epoch budget</li>
+      <li>trade the forbidden direction</li>
+      <li>touch any other pool</li>
+      <li>keep trading after you revoke</li>
+      <li>outlive its expiry</li>
+      <li>withdraw your funds — ever</li>
+      <li>route around the rules via another router</li>
+      <li>lose your custody: you can always pull out</li>
+    </ul>
+    <p class="proof">Each rejection above is a named on-chain error with a test proving it:
+    <code>BudgetExceeded · DirectionForbidden · Revoked · Expired · WrongPool · NotMandateBook</code></p>
+  </div>
+</section>
+
+<section id="how" class="wrap">
+  <h2>How it works</h2>
+  <p class="lede">Three steps. Custody never moves.</p>
+  <div class="grid3">
+    <div class="card">
+      <span class="step">STEP 1</span>
+      <h3>Deposit</h3>
+      <p>Fund your vault. Only you can ever withdraw — no mandate, executor, or admin path
+      touches it.</p>
+    </div>
+    <div class="card">
+      <span class="step">STEP 2</span>
+      <h3>Write the policy</h3>
+      <p>Pool, per-epoch budget, direction, expiry. The policy is on-chain data — readable,
+      auditable, boring.</p>
+    </div>
+    <div class="card">
+      <span class="step">STEP 3</span>
+      <h3>Hand over the capability</h3>
+      <p>The mandate is an ERC-6909 token. Whoever holds it can act — inside the envelope.
+      Transfer it to delegate; revoke to kill it. Revocation always wins.</p>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <h3>Guards: pre/post conditions for pools</h3>
+      <p>An oracle price band checked before <em>and after</em> every swap. A trade whose
+      impact would push the pool off-market unwinds entirely — built-in manipulation and
+      fat-finger protection, for mandated and ordinary flow alike.</p>
+    </div>
+    <div class="card">
+      <h3>Chrono: swap traffic as a clock</h3>
+      <p>Scheduled jobs (DCA legs, rebalances) ride other people's swaps and pay them a
+      bounty for the gas. No keeper subscription; a permissionless poke keeps liveness when
+      markets are quiet.</p>
+    </div>
+  </div>
+</section>
+
+<section id="builders" class="wrap">
+  <h2>For builders: agents hold mandates today</h2>
+  <p class="lede">An MCP server makes any Claude (or MCP-capable) agent a mandate executor.
+  The agent is <strong>assumed hostile</strong> — the envelope holds anyway.</p>
+  <pre><span class="c"># wire the mandates MCP server into Claude Code</span>
+claude mcp add mandates \
+  -e MANDATE_RPC_URL=https://... \
+  -e MANDATE_BOOK=0xYourMandateBook \
+  -e MANDATE_PRIVATE_KEY=0xExecutorKey \  <span class="c"># executor key, NOT your keys</span>
+  -- npx tsx mcp/src/index.ts
+
+<span class="c"># the agent sees four tools:</span>
+<span class="a">mandate_status</span>   <span class="c">→ live policy + remaining budget</span>
+<span class="a">mandate_execute</span>  <span class="c">→ one swap inside the envelope (simulated first)</span>
+<span class="a">executor_info</span>    <span class="c">→ who am I, gas balance</span>
+<span class="a">vault_balance</span>    <span class="c">→ owner's funds available</span>
+
+<span class="c"># and a boundary it can reason about:</span>
+<span class="g">"BudgetExceeded means you hit your allowance —
+ a hard boundary, not an error to retry."</span></pre>
+</section>
+
+<div class="strip">
+  <div class="wrap">
+    <b>STATUS</b>
+    <p><strong>Working prototype, unaudited.</strong> Contracts, 48-test suite (including the
+    compromised-executor scenarios above), CLI, MCP server, and deploy tooling exist today;
+    code drops publicly soon. Do not point real funds at it yet. Built for Ethereum mainnet
+    on Uniswap v4.</p>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div>MANDATES_ · give your agent an allowance, not your keys</div>
+    <div>capability model inspired by Flow's Cadence · enforced by Uniswap v4 hooks</div>
+  </div>
+</footer>
+
+</body>
+</html>
