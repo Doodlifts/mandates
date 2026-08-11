@@ -56,7 +56,7 @@ createMandate(pool, executor, budgetPerEpoch, epochLength, start, expiry, direct
 
 ## Tests
 
-33 tests, including the compromised-executor suite: budget overruns,
+48 tests, including the compromised-executor suite: budget overruns,
 wrong-direction trades, post-revocation and post-expiry execution, forged
 hookData via external routers, non-holder execution, executor withdrawal
 attempts — all rejected. GuardHook proves a whole swap unwinds when its
