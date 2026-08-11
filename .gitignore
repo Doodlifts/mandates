@@ -3,3 +3,4 @@ out/
 broadcast/
 .env
 node_modules/
+private/

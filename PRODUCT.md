@@ -37,7 +37,7 @@ forced to use it, but it's where normal humans live. Core flows:
 ### Notifications
 "Your DCA executed: 500 USDC → 0.21 ETH", "Mandate #12 expires in 3 days",
 "Guard breaker tripped on ETH/USDC" — email/push/telegram. This is where a
-hosted product earns its keep (see BUSINESS.md).
+hosted product earns its keep.
 
 ## 2. The CLI / SDK
 
@@ -70,7 +70,7 @@ firing you is public!), uptime on chrono jobs.
 - New operators bootstrap reputation with small public mandates.
 - Owners comparison-shop executors like Morpho curators or validator lists.
 - Executor fees are a policy field in v2 (bps of volume, paid from output);
-  the protocol takes its cut there (see BUSINESS.md).
+  the protocol takes its cut there.
 
 The marketplace is the moat: contracts are forkable, but a directory of
 reputations and a two-sided market of owners and executors is not.

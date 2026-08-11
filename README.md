@@ -1,6 +1,8 @@
 # Mandates
 
-**Live:** [mandates-xi.vercel.app](https://mandates-xi.vercel.app)
+[![test](https://github.com/Doodlifts/mandates/actions/workflows/test.yml/badge.svg)](https://github.com/Doodlifts/mandates/actions/workflows/test.yml)
+
+**Live:** [mandates-xi.vercel.app](https://mandates-xi.vercel.app) · **Try it:** `./demo.sh` · **Verify it:** [TESTING.md](TESTING.md)
 
 **Hire anyone — or any AI — to trade your money, without trusting them.**
 
@@ -67,6 +69,13 @@ post-condition fails. ChronoHook proves failing jobs never block swaps and
 forge test
 ```
 
+Or watch the whole lifecycle — issue, trade, over-spend, wrong direction,
+forgery, revoke, withdraw — play out live on a local chain:
+
+```bash
+./demo.sh
+```
+
 ## CLI
 
 ```bash
@@ -98,8 +107,8 @@ completes. Gas numbers in [GAS.md](GAS.md).
 
 Prototype. Before real funds: audit; ChronoHook `tx.origin` bounty routing
 tradeoff; partial-fill accounting review; per-pool TWAP fallback oracle;
-production bytecode profile (via-ir); protocol fee switch (see BUSINESS.md).
+production bytecode profile (via-ir); protocol fee switch.
 
 See [PRODUCT.md](PRODUCT.md) for how people use this (launchpad, CLI,
-executor marketplace) and [BUSINESS.md](BUSINESS.md) for the
-monetization-vs-public-good analysis.
+executor marketplace), and [TESTING.md](TESTING.md) to verify everything
+yourself in ten minutes.
