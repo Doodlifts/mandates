@@ -1,5 +1,7 @@
 # Mandates
 
+**Live:** [mandates-xi.vercel.app](https://mandates-xi.vercel.app)
+
 **Hire anyone — or any AI — to trade your money, without trusting them.**
 
 A mandate is what asset managers call scoped authority: *you may trade this
