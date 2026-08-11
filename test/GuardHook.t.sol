@@ -12,6 +12,7 @@ import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 
 import {GuardHook, ISqrtPriceOracle} from "../src/GuardHook.sol";
+import {Guarded} from "../src/base/Guarded.sol";
 
 contract MockSqrtOracle is ISqrtPriceOracle {
     uint160 public price;
@@ -109,13 +110,13 @@ contract GuardHookTest is Test, Deployers {
 
     function test_RevertWhen_NonGuardianTripsBreaker() public {
         vm.prank(rando);
-        vm.expectRevert(GuardHook.NotGuardian.selector);
+        vm.expectRevert(Guarded.NotGuardian.selector);
         guard.setBreaker(key, true);
     }
 
     function test_RevertWhen_GuardAlreadySet() public {
         vm.prank(rando);
-        vm.expectRevert(GuardHook.AlreadyGuarded.selector);
+        vm.expectRevert(Guarded.AlreadyGuarded.selector);
         guard.setGuard(key, oracle, 50);
     }
 

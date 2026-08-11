@@ -4,36 +4,42 @@ pragma solidity ^0.8.26;
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
+import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
 import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
 
-import {Guarded, ISqrtPriceOracle} from "./base/Guarded.sol";
+import {Guarded} from "./base/Guarded.sol";
+import {MandateBook} from "./MandateBook.sol";
 
-/// @title GuardHook — declarative pre/post conditions for pools
+/// @title MandateGuardHook — mandates + guards on a single hook address
 ///
-/// @notice Cadence transactions carry `pre { }` and `post { }` blocks:
-/// assertions the runtime enforces around arbitrary execution. This hook
-/// gives a v4 pool the same shape, fail-closed:
+/// @notice v4 allows exactly one hook per pool, so the two enforcement
+/// layers compose by inheritance rather than stacking:
 ///
-///  - PRE (beforeSwap):  pool price within `maxDeviationBps` of the oracle
-///    (refuse to trade against a manipulated/stale pool) and breaker intact.
-///  - POST (afterSwap):  price STILL within the band — a swap that would
-///    push the pool off-market reverts whole, leaving no trace.
+///  - every swap (mandated or not) passes the Guarded pre/post price-band
+///    conditions and the circuit breaker;
+///  - swaps carrying mandate hookData are additionally re-validated and
+///    budget-debited against the MandateBook, and must originate from it.
 ///
-/// Deviation is measured in bps of sqrt-price (≈ half the bps of price for
-/// small moves). Logic lives in `Guarded`; see MandateGuardHook for the
-/// composed variant.
-contract GuardHook is IHooks, Guarded {
+/// The result for an owner reads like a Cadence transaction: "this executor
+/// may spend 100 USDC/day here until June — and no execution, theirs or
+/// anyone's, may move this pool more than 1% off the reference price."
+///
+/// This is the canonical production hook; MandateHook and GuardHook remain
+/// as the single-purpose variants.
+contract MandateGuardHook is IHooks, Guarded {
     using PoolIdLibrary for PoolKey;
 
     error NotPoolManager();
+    error NotMandateBook();
     error HookNotImplemented();
 
     IPoolManager public immutable poolManager;
+    MandateBook public immutable book;
 
-    constructor(IPoolManager _poolManager) {
+    constructor(IPoolManager _poolManager, MandateBook _book) {
         poolManager = _poolManager;
+        book = _book;
     }
 
     function _manager() internal view override returns (IPoolManager) {
@@ -46,12 +52,23 @@ contract GuardHook is IHooks, Guarded {
     }
 
     function beforeSwap(
-        address,
+        address sender,
         PoolKey calldata key,
-        IPoolManager.SwapParams calldata,
-        bytes calldata
-    ) external view onlyPoolManager returns (bytes4, BeforeSwapDelta, uint24) {
-        _checkPre(key.toId());
+        IPoolManager.SwapParams calldata params,
+        bytes calldata hookData
+    ) external onlyPoolManager returns (bytes4, BeforeSwapDelta, uint24) {
+        PoolId poolId = key.toId();
+
+        // PRE-conditions apply to ALL traffic on the pool.
+        _checkPre(poolId);
+
+        // Mandate enforcement applies to mandate-carrying swaps only.
+        if (hookData.length != 0) {
+            if (sender != address(book)) revert NotMandateBook();
+            (uint256 mandateId, address executor) = abi.decode(hookData, (uint256, address));
+            book.enforceAndDebit(mandateId, executor, poolId, params.zeroForOne, params.amountSpecified);
+        }
+
         return (IHooks.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
     }
 
@@ -62,6 +79,7 @@ contract GuardHook is IHooks, Guarded {
         BalanceDelta,
         bytes calldata
     ) external view onlyPoolManager returns (bytes4, int128) {
+        // POST-condition: nobody's swap may leave the pool off-market.
         _checkPost(key.toId());
         return (IHooks.afterSwap.selector, 0);
     }
