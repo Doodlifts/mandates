@@ -112,3 +112,9 @@ production bytecode profile (via-ir); protocol fee switch.
 See [PRODUCT.md](PRODUCT.md) for how people use this (launchpad, CLI,
 executor marketplace), and [TESTING.md](TESTING.md) to verify everything
 yourself in ten minutes.
+
+Next on the drawing board: [REHYPOBOOK.md](REHYPOBOOK.md) — a design doc
+(no code yet) for making idle vault balances yield-bearing and letting
+multiple protocols hold overlapping just-in-time claims on one pot, with
+explicit seniority. It's written to be attacked; §7's invariants and §9's
+open questions are the review surface.
